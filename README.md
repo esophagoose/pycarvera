@@ -4,10 +4,11 @@ A Python CLI and library for interacting with Makera Carvera CNC machines.
 
 ## Features
 
-- **Connect to Carvera machines via USB or WiFi**
-- **List available Carvera machines on your network or connected via USB**
+- Connect to Carvera machines via USB or WiFi
+- List G-code files stored on the Carvera machine
 
 ## Command Line Usage
+### Finding Available Carvera Machines
 ```
 > pycarvera --list
 ```
@@ -18,8 +19,23 @@ This will scan for USB devices and your local network for Carvera machines. You 
 
 Carvera machines will be printed to console:
 ```
+✨ Makera Carvera CLI ✨
+
 Found 1 Carvera machines:
   1: [CARVERA_AIR] 192.168.1.6:2222
+```
+
+### Listing Files on Your CNC
+You can see what files are on your Carver using the `-a` option to give an address to your Carvera and the `-f` option to list files
+
+```
+> pycarvera -a 192.168.1.6:2222 -f
+
+✨ Makera Carvera CLI ✨
+
+1 gcode files found on the Carvera:
+  1: PirateShip.nc (2.99 MB)
+
 ```
 
 

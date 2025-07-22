@@ -1,7 +1,9 @@
 import enum
+import hashlib
+import os
+import re
 import socket
 from collections import namedtuple
-from queue import Queue
 
 import serial
 import serial.tools.list_ports
@@ -19,16 +21,25 @@ class ConnectionNotReadyError(ConnectionError):
 Carvera = namedtuple("Carvera", ["name", "address", "busy"])
 
 
+def get_connector_from_address(address: str) -> "Connection":
+    ip_pattern = r"([0-9]+|\.){8}:\d+"
+    if os.path.exists(address):
+        return UsbConnection().open(address)
+    elif re.match(ip_pattern, address):
+        return WifiConnection().open(address)
+    raise ValueError(f"Invalid address: {address}")
+
+
 class Connection:
 
     def __init__(self):
-        self.modem = xmodem.XMODEM(self._recv, self._send, "xmodem")
+        self.modem = xmodem.XMODEM(self._recv, self._send, "xmodem8k")
         self.ready = False
 
     def find(self) -> list[Carvera]:
         raise NotImplementedError
 
-    def open(self, address: str):
+    def open(self, address: str) -> "Connection":
         raise NotImplementedError
 
     def close(self):
@@ -44,17 +55,22 @@ class Connection:
     def _send(self, data: bytes):
         raise NotImplementedError
 
-    def recv(self):
+    def recv(self) -> str:
         if not self.ready:
             raise ConnectionNotReadyError("Did you open the device?")
-        return self._recv()
+        response = self._recv()
+        if response.endswith(xmodem.EOT.decode()):
+            return response[:-1]
+        return response
 
-    def _recv(self):
+    def _recv(self) -> str:
         raise NotImplementedError
 
     def upload(self, filename: str) -> bool:
         with open(filename, "rb") as f:
-            response = self.modem.send(f)
+            data = f.read()
+            md5_hash = hashlib.md5(data).hexdigest().encode()
+            response = self.modem.send(md5_hash + data)
             return response
 
     def download(self, filename: str) -> bool:
@@ -70,6 +86,7 @@ class WifiConnection(Connection):
     DEFAULT_TIMEOUT = 1.0
 
     def __init__(self):
+        super().__init__()
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.settimeout(self.DEFAULT_TIMEOUT)
         self.connected = False
@@ -96,6 +113,7 @@ class WifiConnection(Connection):
             self.ready = True
         except socket.error as e:
             print(f"WiFi connection failed: {e}")
+        return self
 
     def close(self):
         """Close WiFi connection."""
@@ -107,7 +125,7 @@ class WifiConnection(Connection):
 
     def _recv(self):
         """Receive data from the machine."""
-        return self.socket.recv(1024)
+        return self.socket.recv(4096).decode()
 
 
 class UsbConnection(Connection):
@@ -117,6 +135,7 @@ class UsbConnection(Connection):
     PID = 0x6001
 
     def __init__(self):
+        super().__init__()
         self.serial = None
         self.device = None
 
@@ -139,6 +158,7 @@ class UsbConnection(Connection):
         )
         self.serial.flush()
         self.ready = True
+        return self
 
     def _send(self, data):
         self.serial.write(data)
