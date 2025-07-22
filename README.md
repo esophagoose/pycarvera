@@ -6,6 +6,7 @@ A Python CLI and library for interacting with Makera Carvera CNC machines.
 
 - Connect to Carvera machines via USB or WiFi
 - List G-code files stored on the Carvera machine
+- Remove G-code files from the Carvera machine
 
 ## Command Line Usage
 ### Finding Available Carvera Machines
@@ -53,6 +54,8 @@ options:
                         Carvera address
   -f, --list_remote_files
                         List files on the Carvera
+  -r REMOVE_FILE, --remove_file REMOVE_FILE
+                        Remove a file from the Carvera
 ```
 
 

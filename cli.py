@@ -26,6 +26,12 @@ def arg_parser():
         action="store_true",
         help="List files on the Carvera",
     )
+    parser.add_argument(
+        "-r",
+        "--remove_file",
+        type=str,
+        help="Remove a file from the Carvera",
+    )
     return parser
 
 
@@ -64,6 +70,15 @@ def main():
         print()
         return
 
+    if args.remove_file:
+        connector = conn_lib.get_connector_from_address(args.address)
+        machine = carvera.CarveraController(connector)
+        if not args.remove_file.startswith("/"):
+            args.remove_file = carvera.REMOTE_GCODE_DIR / args.remove_file
+        machine.remove_file(args.remove_file)
+        print(f"Removed file: {args.remove_file}")
+        print()
+        return
     print("No options specified, use --help for usage\n")
 
 

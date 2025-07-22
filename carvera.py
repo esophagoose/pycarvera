@@ -49,6 +49,9 @@ class CarveraController:
             files.append(FileInfo(name=name, size=int(size), date=date))
         return files
 
+    def remove_file(self, filename: pathlib.Path):
+        self.run(f"rm {escape(str(filename))}\n")
+
     def upload(self, filepath: str):
         if not os.path.exists(filepath):
             raise FileNotFoundError(f"Upload file not found: {filepath}")
