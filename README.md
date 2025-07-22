@@ -39,6 +39,20 @@ You can see what files are on your Carver using the `-a` option to give an addre
 ```
 
 
+### Full Usage
+```
+usage: pycarvera [-h] [-c {usb,wifi}] [--list] [-a ADDRESS] [-f]
 
+Makera Carvera CLI
+
+options:
+  -h, --help            show this help message and exit
+  -c {usb,wifi}, --connection {usb,wifi}
+  --list                List available Carvera machines
+  -a ADDRESS, --address ADDRESS
+                        Carvera address
+  -f, --list_remote_files
+                        List files on the Carvera
+```
 
 
